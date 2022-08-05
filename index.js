@@ -1,9 +1,9 @@
 const { EventEmitter } = require('events');
 const ethUtil = require('ethereumjs-util');
 const HDKey = require('hdkey');
-const TrezorConnect = require('trezor-connect').default;
+const JuBiterConnect = require('jubiter-connect').default;
 const { TransactionFactory } = require('@ethereumjs/tx');
-const transformTypedData = require('trezor-connect/lib/plugins/ethereum/typedData');
+const transformTypedData = require('jubiter-connect/lib/plugins/ethereum/typedData');
 
 const hdPathString = `m/44'/60'/0'/0`;
 const SLIP0044TestnetPath = `m/44'/1'/0'/0`;
@@ -13,11 +13,11 @@ const ALLOWED_HD_PATHS = {
   [SLIP0044TestnetPath]: true,
 };
 
-const keyringType = 'Trezor Hardware';
+const keyringType = 'JuBiter Hardware';
 const pathBase = 'm';
 const MAX_INDEX = 1000;
 const DELAY_BETWEEN_POPUPS = 1000;
-const TREZOR_CONNECT_MANIFEST = {
+const JUBITER_CONNECT_MANIFEST = {
   email: 'support@metamask.io',
   appUrl: 'https://metamask.io',
 };
@@ -48,7 +48,7 @@ function isOldStyleEthereumjsTx(tx) {
   return typeof tx.getChainId === 'function';
 }
 
-class TrezorKeyring extends EventEmitter {
+class JuBiterKeyring extends EventEmitter {
   constructor(opts = {}) {
     super();
     this.type = keyringType;
@@ -60,12 +60,12 @@ class TrezorKeyring extends EventEmitter {
     this.paths = {};
     this.deserialize(opts);
 
-    TrezorConnect.on('DEVICE_EVENT', (event) => {
+    JuBiterConnect.on('DEVICE_EVENT', (event) => {
       if (event && event.payload && event.payload.features) {
         this.model = event.payload.features.model;
       }
     });
-    TrezorConnect.init({ manifest: TREZOR_CONNECT_MANIFEST });
+    JuBiterConnect.init({ manifest:JUBITER_CONNECT_MANIFEST });
   }
 
   /**
@@ -79,10 +79,10 @@ class TrezorKeyring extends EventEmitter {
   }
 
   dispose() {
-    // This removes the Trezor Connect iframe from the DOM
+    // This removes the JuBiter Connect iframe from the DOM
     // This method is not well documented, but the code it calls can be seen
-    // here: https://github.com/trezor/connect/blob/dec4a56af8a65a6059fb5f63fa3c6690d2c37e00/src/js/iframe/builder.js#L181
-    TrezorConnect.dispose();
+    // here: https://github.com/jubiter/connect/blob/dec4a56af8a65a6059fb5f63fa3c6690d2c37e00/src/js/iframe/builder.js#L181
+    JuBiterConnect.dispose();
   }
 
   serialize() {
@@ -113,7 +113,7 @@ class TrezorKeyring extends EventEmitter {
       return Promise.resolve('already unlocked');
     }
     return new Promise((resolve, reject) => {
-      TrezorConnect.getPublicKey({
+      JuBiterConnect.getPublicKey({
         path: this.hdPath,
         coin: 'ETH',
       })
@@ -224,7 +224,7 @@ class TrezorKeyring extends EventEmitter {
   }
 
   /**
-   * Signs a transaction using Trezor.
+   * Signs a transaction using JuBiter.
    *
    * Accepts either an ethereumjs-tx or @ethereumjs/tx transaction, and returns
    * the same type.
@@ -280,7 +280,7 @@ class TrezorKeyring extends EventEmitter {
    * @param {string} address - Hex string address.
    * @param {number} chainId - Chain ID
    * @param {Transaction} tx - Instance of either new-style or old-style ethereumjs transaction.
-   * @param {(import('trezor-connect').EthereumSignedTx) => Transaction} handleSigning - Converts signed transaction
+   * @param {(import('jubiter-connect').EthereumSignedTx) => Transaction} handleSigning - Converts signed transaction
    * to the same new-style or old-style ethereumjs-tx.
    * @returns {Promise<Transaction>} The signed transaction, an instance of either new-style or old-style
    * ethereumjs transaction.
@@ -312,7 +312,7 @@ class TrezorKeyring extends EventEmitter {
     try {
       const status = await this.unlock();
       await wait(status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0);
-      const response = await TrezorConnect.ethereumSignTransaction({
+      const response = await JuBiterConnect.ethereumSignTransaction({
         path: this._pathFromAddress(address),
         transaction,
       });
@@ -350,7 +350,7 @@ class TrezorKeyring extends EventEmitter {
         .then((status) => {
           setTimeout(
             (_) => {
-              TrezorConnect.ethereumSignMessage({
+              JuBiterConnect.ethereumSignMessage({
                 path: this._pathFromAddress(withAccount),
                 message: ethUtil.stripHexPrefix(message),
                 hex: true,
@@ -380,7 +380,7 @@ class TrezorKeyring extends EventEmitter {
                   reject(new Error((e && e.toString()) || 'Unknown error'));
                 });
               // This is necessary to avoid popup collision
-              // between the unlock & sign trezor popups
+              // between the unlock & sign jubiter popups
             },
             status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0,
           );
@@ -398,23 +398,23 @@ class TrezorKeyring extends EventEmitter {
     const dataWithHashes = transformTypedData(data, version === 'V4');
 
     // set default values for signTypedData
-    // Trezor is stricter than @metamask/eth-sig-util in what it accepts
+    // JuBiter is stricter than @metamask/eth-sig-util in what it accepts
     const {
       types: { EIP712Domain = [], ...otherTypes } = {},
       message = {},
       domain = {},
       primaryType,
-      // snake_case since Trezor uses Protobuf naming conventions here
+      // snake_case since JuBiter uses Protobuf naming conventions here
       domain_separator_hash, // eslint-disable-line camelcase
       message_hash, // eslint-disable-line camelcase
     } = dataWithHashes;
 
     // This is necessary to avoid popup collision
-    // between the unlock & sign trezor popups
+    // between the unlock & sign jubiter popups
     const status = await this.unlock();
     await wait(status === 'just unlocked' ? DELAY_BETWEEN_POPUPS : 0);
 
-    const response = await TrezorConnect.ethereumSignTypedData({
+    const response = await JuBiterConnect.ethereumSignTypedData({
       path: this._pathFromAddress(address),
       data: {
         types: { EIP712Domain, ...otherTypes },
@@ -423,7 +423,7 @@ class TrezorKeyring extends EventEmitter {
         primaryType,
       },
       metamask_v4_compat: true,
-      // Trezor 1 only supports blindly signing hashes
+      // JuBiter 1 only supports blindly signing hashes
       domain_separator_hash,
       message_hash,
     });
@@ -515,5 +515,5 @@ class TrezorKeyring extends EventEmitter {
   }
 }
 
-TrezorKeyring.type = keyringType;
-module.exports = TrezorKeyring;
+JuBiterKeyring.type = keyringType;
+module.exports = JuBiterKeyring;
