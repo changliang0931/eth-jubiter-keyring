@@ -9,14 +9,14 @@ const sinon = require('sinon');
 
 const EthereumTx = require('ethereumjs-tx');
 const HDKey = require('hdkey');
-const TrezorConnect = require('trezor-connect').default;
+const JuBiterConnect = require('jubiter-connect').default;
 const {
   TransactionFactory,
   FeeMarketEIP1559Transaction,
 } = require('@ethereumjs/tx');
 const { default: Common, Chain, Hardfork } = require('@ethereumjs/common');
 
-const TrezorKeyring = require('..');
+const JuBiterKeyring = require('..');
 
 const SIGNING_DELAY = 20;
 
@@ -99,11 +99,11 @@ const fakeTypeTwoTx = FeeMarketEIP1559Transaction.fromTxData(
 
 chai.use(spies);
 
-describe('TrezorKeyring', function () {
+describe('JuBiterKeyring', function () {
   let keyring;
 
   beforeEach(async function () {
-    keyring = new TrezorKeyring();
+    keyring = new JuBiterKeyring();
     keyring.hdk = fakeHdKey;
   });
 
@@ -116,20 +116,20 @@ describe('TrezorKeyring', function () {
 
   describe('Keyring.type', function () {
     it('is a class property that returns the type string.', function () {
-      const { type } = TrezorKeyring;
+      const { type } = JuBiterKeyring;
       assert.equal(typeof type, 'string');
     });
 
     it('returns the correct value', function () {
       const { type } = keyring;
-      const correct = TrezorKeyring.type;
+      const correct = JuBiterKeyring.type;
       assert.equal(type, correct);
     });
   });
 
   describe('constructor', function () {
     it('constructs', function (done) {
-      const t = new TrezorKeyring({ hdPath: `m/44'/60'/0'/0` });
+      const t = new JuBiterKeyring({ hdPath: `m/44'/60'/0'/0` });
       assert.equal(typeof t, 'object');
       t.getAccounts().then((accounts) => {
         assert.equal(Array.isArray(accounts), true);
@@ -184,9 +184,9 @@ describe('TrezorKeyring', function () {
       });
     });
 
-    it('should call TrezorConnect.getPublicKey if we dont have a public key', async function () {
+    it('should call JuBiterConnect.getPublicKey if we dont have a public key', async function () {
       sinon
-        .stub(TrezorConnect, 'getPublicKey')
+        .stub(JuBiterConnect, 'getPublicKey')
         .callsFake(() => Promise.resolve({}));
       keyring.hdk = new HDKey();
       try {
@@ -195,7 +195,7 @@ describe('TrezorKeyring', function () {
         // Since we only care about ensuring our function gets called,
         // we want to ignore warnings due to stub data
       }
-      assert(TrezorConnect.getPublicKey.calledOnce);
+      assert(JuBiterConnect.getPublicKey.calledOnce);
     });
   });
 
@@ -379,8 +379,8 @@ describe('TrezorKeyring', function () {
   });
 
   describe('signTransaction', function () {
-    it('should pass serialized transaction to trezor and return signed tx', async function () {
-      sinon.stub(TrezorConnect, 'ethereumSignTransaction').callsFake(() => {
+    it('should pass serialized transaction to jubiter and return signed tx', async function () {
+      sinon.stub(JuBiterConnect, 'ethereumSignTransaction').callsFake(() => {
         return Promise.resolve({
           success: true,
           payload: { v: '0x1', r: '0x0', s: '0x0' },
@@ -397,10 +397,10 @@ describe('TrezorKeyring', function () {
       // ensure we get a older version transaction back
       assert.equal(returnedTx.getChainId(), 1);
       assert.equal(returnedTx.common, undefined);
-      assert(TrezorConnect.ethereumSignTransaction.calledOnce);
+      assert(JuBiterConnect.ethereumSignTransaction.calledOnce);
     });
 
-    it('should pass serialized newer transaction to trezor and return signed tx', async function () {
+    it('should pass serialized newer transaction to jubiter and return signed tx', async function () {
       sinon.stub(TransactionFactory, 'fromTxData').callsFake(() => {
         // without having a private key/public key pair in this test, we have
         // mock out this method and return the original tx because we can't
@@ -408,7 +408,7 @@ describe('TrezorKeyring', function () {
         return newFakeTx;
       });
 
-      sinon.stub(TrezorConnect, 'ethereumSignTransaction').callsFake(() => {
+      sinon.stub(JuBiterConnect, 'ethereumSignTransaction').callsFake(() => {
         return Promise.resolve({
           success: true,
           payload: { v: '0x25', r: '0x0', s: '0x0' },
@@ -427,10 +427,10 @@ describe('TrezorKeyring', function () {
       // ensure we get a new version transaction back
       assert.equal(returnedTx.getChainId, undefined);
       assert.equal(returnedTx.common.chainIdBN().toString('hex'), '1');
-      assert(TrezorConnect.ethereumSignTransaction.calledOnce);
+      assert(JuBiterConnect.ethereumSignTransaction.calledOnce);
     });
 
-    it('should pass serialized contract deployment transaction to trezor and return signed tx', async function () {
+    it('should pass serialized contract deployment transaction to jubiter and return signed tx', async function () {
       sinon.stub(TransactionFactory, 'fromTxData').callsFake(() => {
         // without having a private key/public key pair in this test, we have
         // mock out this method and return the original tx because we can't
@@ -438,7 +438,7 @@ describe('TrezorKeyring', function () {
         return contractDeploymentFakeTx;
       });
 
-      sinon.stub(TrezorConnect, 'ethereumSignTransaction').callsFake(() => {
+      sinon.stub(JuBiterConnect, 'ethereumSignTransaction').callsFake(() => {
         return Promise.resolve({
           success: true,
           payload: { v: '0x25', r: '0x0', s: '0x0' },
@@ -460,9 +460,9 @@ describe('TrezorKeyring', function () {
       // ensure we get a new version transaction back
       assert.equal(returnedTx.getChainId, undefined);
       assert.equal(returnedTx.common.chainIdBN().toString('hex'), '1');
-      assert(TrezorConnect.ethereumSignTransaction.calledOnce);
+      assert(JuBiterConnect.ethereumSignTransaction.calledOnce);
       assert.deepEqual(
-        TrezorConnect.ethereumSignTransaction.getCall(0).args[0],
+        JuBiterConnect.ethereumSignTransaction.getCall(0).args[0],
         {
           path: `m/44'/60'/0'/0/0`,
           transaction: {
@@ -474,7 +474,7 @@ describe('TrezorKeyring', function () {
       );
     });
 
-    it('should pass correctly encoded EIP1559 transaction to trezor and return signed tx', async function () {
+    it('should pass correctly encoded EIP1559 transaction to jubiter and return signed tx', async function () {
       // Copied from @MetaMask/eth-ledger-bridge-keyring
       // Generated by signing fakeTypeTwoTx with an unknown private key
       const expectedRSV = {
@@ -490,7 +490,7 @@ describe('TrezorKeyring', function () {
       });
 
       sinon
-        .stub(TrezorConnect, 'ethereumSignTransaction')
+        .stub(JuBiterConnect, 'ethereumSignTransaction')
         .callsFake((params) => {
           expect(params.transaction).to.be.an('object');
           // chainId must be a number, unlike other variables which can be hex-strings
@@ -512,7 +512,7 @@ describe('TrezorKeyring', function () {
         commonEIP1559,
       );
 
-      assert(TrezorConnect.ethereumSignTransaction.calledOnce);
+      assert(JuBiterConnect.ethereumSignTransaction.calledOnce);
       expect(returnedTx.toJSON()).to.deep.equal({
         ...fakeTypeTwoTx.toJSON(),
         ...expectedRSV,
@@ -521,9 +521,9 @@ describe('TrezorKeyring', function () {
   });
 
   describe('signMessage', function () {
-    it('should call TrezorConnect.ethereumSignMessage', function (done) {
+    it('should call JuBiterConnect.ethereumSignMessage', function (done) {
       sinon
-        .stub(TrezorConnect, 'ethereumSignMessage')
+        .stub(JuBiterConnect, 'ethereumSignMessage')
         .callsFake(() => Promise.resolve({}));
 
       keyring.signMessage(fakeAccounts[0], 'some msg').catch((_) => {
@@ -532,16 +532,16 @@ describe('TrezorKeyring', function () {
       });
 
       setTimeout(() => {
-        assert(TrezorConnect.ethereumSignMessage.calledOnce);
+        assert(JuBiterConnect.ethereumSignMessage.calledOnce);
         done();
       }, SIGNING_DELAY);
     });
   });
 
   describe('signPersonalMessage', function () {
-    it('should call TrezorConnect.ethereumSignMessage', function (done) {
+    it('should call JuBiterConnect.ethereumSignMessage', function (done) {
       sinon
-        .stub(TrezorConnect, 'ethereumSignMessage')
+        .stub(JuBiterConnect, 'ethereumSignMessage')
         .callsFake(() => Promise.resolve({}));
 
       keyring.signPersonalMessage(fakeAccounts[0], 'some msg').catch((_) => {
@@ -551,7 +551,7 @@ describe('TrezorKeyring', function () {
 
       setTimeout(() => {
         setTimeout(() => {
-          assert(TrezorConnect.ethereumSignMessage.calledOnce);
+          assert(JuBiterConnect.ethereumSignMessage.calledOnce);
           done();
         });
       }, SIGNING_DELAY);
@@ -573,9 +573,9 @@ describe('TrezorKeyring', function () {
       );
     });
 
-    it('should call TrezorConnect.ethereumSignTypedData', async function () {
+    it('should call JuBiterConnect.ethereumSignTypedData', async function () {
       sinon
-        .stub(TrezorConnect, 'ethereumSignTypedData')
+        .stub(JuBiterConnect, 'ethereumSignTypedData')
         .callsFake(async () => ({
           success: true,
           payload: { signature: '0x00', address: fakeAccounts[0] },
@@ -589,11 +589,11 @@ describe('TrezorKeyring', function () {
         { version: 'V4' },
       );
 
-      assert(TrezorConnect.ethereumSignTypedData.calledOnce);
-      sinon.assert.calledWithExactly(TrezorConnect.ethereumSignTypedData, {
+      assert(JuBiterConnect.ethereumSignTypedData.calledOnce);
+      sinon.assert.calledWithExactly(JuBiterConnect.ethereumSignTypedData, {
         path: "m/44'/60'/0'/0/0",
         data: {
-          // Empty message that trezor-connect/EIP-712 spec accepts
+          // Empty message that jubiter-connect/EIP-712 spec accepts
           types: { EIP712Domain: [], EmptyMessage: [] },
           primaryType: 'EmptyMessage',
           domain: {},

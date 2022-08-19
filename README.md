@@ -1,20 +1,20 @@
-# eth-trezor-keyring
+# eth-jubiter-keyring
 
-An implementation of MetaMask's [Keyring interface](https://github.com/MetaMask/eth-simple-keyring#the-keyring-class-protocol), that uses a TREZOR hardware
+An implementation of MetaMask's [Keyring interface](https://github.com/MetaMask/eth-simple-keyring#the-keyring-class-protocol), that uses a JUBITER hardware
 wallet for all cryptographic operations.
 
 In most regards, it works in the same way as
-[eth-hd-keyring](https://github.com/MetaMask/eth-hd-keyring), but using a TREZOR
+[eth-hd-keyring](https://github.com/MetaMask/eth-hd-keyring), but using a JUBITER
 device. However there are a number of differences:
 
 - Because the keys are stored in the device, operations that rely on the device
-  will fail if there is no TREZOR device attached, or a different TREZOR device
+  will fail if there is no JUBITER device attached, or a different JUBITER device
   is attached.
 - It does not support the `signMessage`, `signTypedData` or `exportAccount`
-  methods, because TREZOR devices do not support these operations.
-- The method `signPersonalMessage` requires the firmware version 2.0.7+ for TREZOR Model T and 1.6.2+ on TREZOR ONE
-- As of `trezor-connect`: `8.2.2`, passing an EIP-1559 transaction to `signTransaction`
-  requires the firmware version 2.4.2+ for TREZOR Model T, and version 1.10.4+ for TREZOR ONE.
+  methods, because JUBITER devices do not support these operations.
+- The method `signPersonalMessage` requires the firmware version 2.0.7+ for JUBITER Model T and 1.6.2+ on JUBITER ONE
+- As of `jubiter-connect`: `8.2.2`, passing an EIP-1559 transaction to `signTransaction`
+  requires the firmware version 2.4.2+ for JUBITER Model T, and version 1.10.4+ for JUBITER ONE.
 
 ## Using
 
@@ -23,17 +23,17 @@ there are a few others:
 
 - **isUnlocked** : Returns true if we have the public key in memory, which allows to generate the list of accounts at any time
 
-- **unlock** : Connects to the TREZOR device and exports the extended public key, which is later used to read the available ethereum addresses inside the trezor account.
+- **unlock** : Connects to the JUBITER device and exports the extended public key, which is later used to read the available ethereum addresses inside the jubiter account.
 
 - **setAccountToUnlock** : the index of the account that you want to unlock in order to use with the signTransaction and signPersonalMessage methods
 
-- **getFirstPage** : returns the first ordered set of accounts from the TREZOR account
+- **getFirstPage** : returns the first ordered set of accounts from the JUBITER account
 
-- **getNextPage** : returns the next ordered set of accounts from the TREZOR account based on the current page
+- **getNextPage** : returns the next ordered set of accounts from the JUBITER account based on the current page
 
-- **getPreviousPage** : returns the previous ordered set of accounts from the TREZOR account based on the current page
+- **getPreviousPage** : returns the previous ordered set of accounts from the JUBITER account based on the current page
 
-- **forgetDevice** : removes all the device info from memory so the next interaction with the keyring will prompt the user to connect the TREZOR device and export the account information
+- **forgetDevice** : removes all the device info from memory so the next interaction with the keyring will prompt the user to connect the JUBITER device and export the account information
 
 ## Contributing
 

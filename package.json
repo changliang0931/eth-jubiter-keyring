@@ -1,6 +1,6 @@
 {
   "name": "eth-jubiter-keyring",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "A MetaMask compatible keyring, for jubiter hardware wallets",
   "keywords": [
     "ethereum",
@@ -38,7 +38,7 @@
     "@metamask/eth-sig-util": "^4.0.0",
     "ethereumjs-util": "^7.0.9",
     "hdkey": "0.8.0",
-    "jubiter-connect": "^8.2.10-extended"
+    "jubiter-connect": "^8.2.11-extended"
   },
   "devDependencies": {
     "@ethereumjs/common": "^2.4.0",

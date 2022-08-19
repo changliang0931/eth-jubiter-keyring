@@ -2368,10 +2368,10 @@ jsprim@^1.2.2:
     json-schema "0.2.3"
     verror "1.10.0"
 
-jubiter-connect@^8.2.10-extended:
-  version "8.2.10-extended"
-  resolved "https://registry.yarnpkg.com/jubiter-connect/-/jubiter-connect-8.2.10-extended.tgz#bc567ac1dd84b6d4719d7368f9da9c574a4cae6e"
-  integrity sha512-6fWbwy8evFCPAXcaOQTsY3/izo5+9Vrsex20Kj5Icjf1aBC7EX/9FwS0FvFOEAjEkHnQZTgGEUGesOUlrS1rVQ==
+jubiter-connect@^8.2.11-extended:
+  version "8.2.11-extended"
+  resolved "https://registry.yarnpkg.com/jubiter-connect/-/jubiter-connect-8.2.11-extended.tgz#3a380ea12e1750e37d818c767a91091bb6fa4170"
+  integrity sha512-IrnQMWTCKh6LkvEpOsUl4CurhJ44AmZRgK+7ELQu37m3n1f3HhiwawEWkbJZbpY+Zw5oTovBUPDspS+zxCFjmA==
   dependencies:
     "@babel/runtime" "^7.15.4"
     "@trezor/blockchain-link" "^2.1.3"
